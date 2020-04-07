@@ -1,0 +1,39 @@
+#
+# Setup the services locally
+#
+version: '3.1'
+networks:
+  local:
+
+services:
+  db:
+    image: mysql:5
+    networks:
+      - local
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: root
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - 3306:3306
+  nats:
+    image: nats:latest
+    networks:
+      - local
+    ports:
+      - 4222:4222
+      - 6222:6222
+      - 8222:8222  
+  user:
+    build: $GOPATH/src/github.com/Bachelor-project-f20/users_poc
+    networks:
+      - local
+    depends_on:
+      - db
+      - nats
+    environment:
+      NATS_BROKER_URL: nats:4222
+      MYSQL_URL: root:root@(db:3306)/root?charset=utf8&parseTime=True&loc=Local
+      DB_CONNECTION_SLEEP: 20
+    
