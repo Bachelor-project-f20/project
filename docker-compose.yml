@@ -1,9 +1,14 @@
 #
 # Setup the services locally
 #
-version: '3.1'
+version: '3.7'
 networks:
   local:
+  monitoring:
+
+volumes: 
+  prometheus-data:
+  grafana-data:
 
 services:
   db:
@@ -35,5 +40,28 @@ services:
     environment:
       NATS_BROKER_URL: nats:4222
       MYSQL_URL: root:root@(db:3306)/root?charset=utf8&parseTime=True&loc=Local
-      DB_CONNECTION_SLEEP: 20
+      DB_CONNECTION_SLEEP: 15
+    ports: 
+      - 9191:9191
+  prometheus:
+    image: prom/prometheus
+    networks:
+      - local
+      - monitoring
+    volumes: 
+      - $PWD/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - 9090:9090
+  grafana:
+    image: grafana/grafana
+    networks: 
+      - monitoring
+    volumes: 
+      - grafana-data
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    ports: 
+      - 3000:3000
+    depends_on:
+      - prometheus
     
